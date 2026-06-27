@@ -49,7 +49,7 @@ export async function updateBusyEvent(
   timezone: string
 ): Promise<void> {
   await axios.put(
-    `${GOOGLE_API}/calendars/${encodeURIComponent(calendarId)}/events/${eventId}`,
+    `${GOOGLE_API}/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`,
     {
       summary: 'Busy',
       transparency: 'opaque',
@@ -66,7 +66,7 @@ export async function deleteGoogleEvent(
   eventId: string
 ): Promise<void> {
   await axios.delete(
-    `${GOOGLE_API}/calendars/${encodeURIComponent(calendarId)}/events/${eventId}`,
+    `${GOOGLE_API}/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`,
     { headers: authHeader(accessToken) }
   )
 }

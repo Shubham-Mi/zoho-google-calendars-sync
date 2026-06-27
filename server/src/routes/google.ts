@@ -42,8 +42,8 @@ export const googleRoutes: FastifyPluginAsync = async (app) => {
       }
       if (!userId) return reply.status(401).send({ error: 'Not authenticated' })
 
-      reply.clearCookie('google_oauth_state')
-      reply.clearCookie('pending_user_id')
+      reply.clearCookie('google_oauth_state', { path: '/' })
+      reply.clearCookie('pending_user_id', { path: '/' })
 
       const { accessToken, refreshToken, expiresAt } = await exchangeGoogleCode(code)
 
