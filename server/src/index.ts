@@ -5,6 +5,7 @@ import fastifyCors from '@fastify/cors'
 import fastifyCookie from '@fastify/cookie'
 import { config } from './config.js'
 import { authRoutes } from './routes/auth.js'
+import { zohoRoutes } from './routes/zoho.js'
 
 export async function buildApp() {
   const app = Fastify({ logger: true })
@@ -22,6 +23,7 @@ export async function buildApp() {
   })
 
   await app.register(authRoutes, { prefix: '/api/auth' })
+  await app.register(zohoRoutes, { prefix: '/api/zoho' })
 
   return app
 }
