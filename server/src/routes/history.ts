@@ -16,8 +16,8 @@ export const historyRoutes: FastifyPluginAsync = async (app) => {
     const action = request.query.action
 
     const params: any[] = [userId, limit, offset]
-    const actionFilter = action ? `AND action = $4` : ''
     if (action) params.push(action)
+    const actionFilter = action ? `AND action = $${params.length}` : ''
 
     const { rows: items } = await pool.query(
       `SELECT id, action, zoho_event_id, zoho_event_title, google_calendar_id, detail, synced_at
@@ -30,8 +30,9 @@ export const historyRoutes: FastifyPluginAsync = async (app) => {
 
     const countParams: any[] = [userId]
     if (action) countParams.push(action)
+    const countActionFilter = action ? `AND action = $${countParams.length}` : ''
     const { rows: countRows } = await pool.query(
-      `SELECT COUNT(*) as total FROM sync_history WHERE user_id = $1 ${actionFilter}`,
+      `SELECT COUNT(*) as total FROM sync_history WHERE user_id = $1 ${countActionFilter}`,
       countParams
     )
 
