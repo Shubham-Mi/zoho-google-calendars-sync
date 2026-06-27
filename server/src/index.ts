@@ -6,6 +6,7 @@ import fastifyCookie from '@fastify/cookie'
 import { config } from './config.js'
 import { authRoutes } from './routes/auth.js'
 import { zohoRoutes } from './routes/zoho.js'
+import { googleRoutes } from './routes/google.js'
 
 export async function buildApp() {
   const app = Fastify({ logger: true })
@@ -24,6 +25,7 @@ export async function buildApp() {
 
   await app.register(authRoutes, { prefix: '/api/auth' })
   await app.register(zohoRoutes, { prefix: '/api/zoho' })
+  await app.register(googleRoutes, { prefix: '/api/google' })
 
   return app
 }
