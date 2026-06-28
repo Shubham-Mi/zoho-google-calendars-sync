@@ -3,7 +3,7 @@ import { randomBytes } from 'node:crypto'
 import { pool } from '../db/client.js'
 import { config } from '../config.js'
 import { encrypt } from '../crypto.js'
-import { exchangeZohoCode, fetchZohoUserEmail } from '../services/zoho.service.js'
+import { exchangeZohoCode, fetchZohoUserInfo } from '../services/zoho.service.js'
 
 const ZOHO_AUTH_URL = 'https://accounts.zoho.in/oauth/v2/auth'
 
@@ -74,14 +74,14 @@ export const zohoRoutes: FastifyPluginAsync = async (app) => {
         encryptedRefresh = existing[0].refresh_token
       }
 
-      const email = await fetchZohoUserEmail(accessToken)
+      const { email, accountId } = await fetchZohoUserInfo(accessToken)
 
       await pool.query(
-        `INSERT INTO zoho_connections (user_id, access_token, refresh_token, token_expires_at, email)
-         VALUES ($1, $2, $3, $4, $5)
+        `INSERT INTO zoho_connections (user_id, access_token, refresh_token, token_expires_at, email, zoho_account_id)
+         VALUES ($1, $2, $3, $4, $5, $6)
          ON CONFLICT (user_id) DO UPDATE
-         SET access_token = $2, refresh_token = $3, token_expires_at = $4, email = $5`,
-        [userId, encrypt(accessToken, config.TOKEN_ENCRYPTION_KEY), encryptedRefresh, expiresAt, email]
+         SET access_token = $2, refresh_token = $3, token_expires_at = $4, email = $5, zoho_account_id = $6`,
+        [userId, encrypt(accessToken, config.TOKEN_ENCRYPTION_KEY), encryptedRefresh, expiresAt, email, accountId]
       )
 
       reply.clearCookie('pending_user_id', { path: '/' })

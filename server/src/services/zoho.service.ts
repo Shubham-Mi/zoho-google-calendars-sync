@@ -22,14 +22,14 @@ const ZOHO_API = 'https://calendar.zoho.in/api/v1'
 const ZOHO_TOKEN_URL = 'https://accounts.zoho.in/oauth/v2/token'
 const ZOHO_USERINFO_URL = 'https://accounts.zoho.in/oauth/v2/usersinfo'
 
-export async function fetchZohoUserEmail(accessToken: string): Promise<string | null> {
+export async function fetchZohoUserInfo(accessToken: string): Promise<{ email: string | null; accountId: string | null }> {
   try {
     const { data } = await axios.get(ZOHO_USERINFO_URL, {
       headers: { Authorization: `Zoho-oauthtoken ${accessToken}` },
     })
-    return data.Email ?? null
+    return { email: data.Email ?? null, accountId: data.ZAUID ? String(data.ZAUID) : null }
   } catch {
-    return null
+    return { email: null, accountId: null }
   }
 }
 
