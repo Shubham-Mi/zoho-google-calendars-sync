@@ -25,7 +25,6 @@ export async function fetchZohoCalendars(accessToken: string): Promise<ZohoCalen
   const { data } = await axios.get(`${ZOHO_API}/calendars`, {
     headers: { Authorization: `Zoho-oauthtoken ${accessToken}` },
   })
-  console.log('[zoho] fetchZohoCalendars response:', JSON.stringify(data))
   return data.calendars ?? []
 }
 

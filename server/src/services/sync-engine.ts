@@ -121,11 +121,9 @@ export async function syncUser(userId: string): Promise<void> {
 
   // Process each Zoho event
   for (const [zohoId, event] of zohoEventMap) {
-    console.log(`[sync] event raw dateandtime:`, JSON.stringify(event.dateandtime))
     const start = toIso(event.dateandtime.start)
     const end = toIso(event.dateandtime.end)
     const timezone = event.dateandtime.timezone ?? 'UTC'
-    console.log(`[sync] event converted: start=${start} end=${end} tz=${timezone}`)
 
     const existingMappings = mappingsByZohoId.get(zohoId) ?? []
     const mappedCalendarIds = new Set(existingMappings.map(m => m.googleCalendarId))
