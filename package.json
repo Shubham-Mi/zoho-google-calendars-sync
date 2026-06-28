@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "concurrently \"npm run dev -w server\" \"npm run dev -w client\"",
     "build": "npm run build -w server && npm run build -w client",
+    "build:prod": "npm run build -w server && npm run build -w client",
     "db:migrate": "npm run db:migrate -w server",
     "test": "npm run test -w server && npm run test -w client"
   },
