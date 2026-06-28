@@ -84,6 +84,9 @@ export async function exchangeZohoCode(code: string): Promise<{
   const { data } = await axios.post(ZOHO_TOKEN_URL, params.toString(), {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   })
+  if (data.error) {
+    throw new Error(`Zoho token exchange failed: ${data.error} — ${data.error_description ?? ''}`)
+  }
   return {
     accessToken: data.access_token,
     refreshToken: data.refresh_token,
