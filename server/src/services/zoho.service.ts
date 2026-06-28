@@ -45,7 +45,8 @@ export async function fetchZohoEvents(
       headers: { Authorization: `Zoho-oauthtoken ${accessToken}` },
       params: { range },
     })
-    allEvents.push(...(data.events ?? []))
+    const events = (data.events ?? []).filter((e: any) => e.uid)
+    allEvents.push(...events)
   }
 
   return allEvents
