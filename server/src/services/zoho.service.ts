@@ -37,13 +37,11 @@ export async function fetchZohoEvents(
   const calendars = await fetchZohoCalendars(accessToken)
   const allEvents: ZohoEvent[] = []
 
+  const toZohoDate = (d: Date) =>
+    d.toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z'
+
   for (const calendar of calendars) {
-    const toZohoDate = (d: Date) =>
-      d.toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z'
-    const range = JSON.stringify({
-      start: toZohoDate(from),
-      end: toZohoDate(to),
-    })
+    const range = JSON.stringify({ start: toZohoDate(from), end: toZohoDate(to) })
     const { data } = await axios.get(`${ZOHO_API}/calendars/${calendar.uid}/events`, {
       headers: { Authorization: `Zoho-oauthtoken ${accessToken}` },
       params: { range },

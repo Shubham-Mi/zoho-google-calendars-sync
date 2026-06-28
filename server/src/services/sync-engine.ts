@@ -83,7 +83,7 @@ export async function syncUser(userId: string): Promise<void> {
 
   const now = new Date()
   const from = new Date(now.getTime() - 24 * 3600 * 1000)
-  const to = new Date(now.getTime() + 365 * 24 * 3600 * 1000)
+  const to = new Date(now.getTime() + 30 * 24 * 3600 * 1000)
 
   let zohoEvents
   try {
