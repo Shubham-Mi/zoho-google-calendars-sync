@@ -191,8 +191,11 @@ export async function syncUser(userId: string): Promise<void> {
             [userId, zohoId, mapping.googleCalendarId]
           )
           await pool.query(
-            `INSERT INTO sync_history (user_id, action, zoho_event_id, google_calendar_id, synced_at)
-             VALUES ($1, 'deleted', $2, $3, NOW())`,
+            `INSERT INTO sync_history (user_id, action, zoho_event_id, zoho_event_title, google_calendar_id, synced_at)
+             SELECT $1, 'deleted', $2, zoho_event_title, $3, NOW()
+             FROM sync_history
+             WHERE user_id = $1 AND zoho_event_id = $2 AND zoho_event_title IS NOT NULL
+             ORDER BY synced_at DESC LIMIT 1`,
             [userId, zohoId, mapping.googleCalendarId]
           )
         } catch (err: any) {
