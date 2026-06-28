@@ -34,7 +34,7 @@ export function History() {
   const qc = useQueryClient()
   const [page, setPage] = useState(1)
   const [actionFilter, setActionFilter] = useState('all')
-  const LIMIT = 50
+  const LIMIT = 10
 
   const { data, isLoading, isFetching } = useQuery<HistoryResponse>({
     queryKey: ['history', page, actionFilter],
