@@ -56,9 +56,15 @@ async function getValidGoogleToken(userId: string): Promise<string | null> {
 }
 
 function toIso(zohoDate: string): string {
-  // Zoho dates may be iCal format (20240101T090000Z) or already ISO
+  // UTC iCal: 20260629T110000Z → 2026-06-29T11:00:00Z
   if (/^\d{8}T\d{6}Z$/.test(zohoDate)) {
     return `${zohoDate.slice(0, 4)}-${zohoDate.slice(4, 6)}-${zohoDate.slice(6, 8)}T${zohoDate.slice(9, 11)}:${zohoDate.slice(11, 13)}:${zohoDate.slice(13, 15)}Z`
+  }
+  // Local iCal with offset: 20260629T110000+0530 → 2026-06-29T11:00:00+05:30
+  const offsetMatch = zohoDate.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})([+-])(\d{2})(\d{2})$/)
+  if (offsetMatch) {
+    const [, yr, mo, dy, hh, mm, ss, sign, offH, offM] = offsetMatch
+    return `${yr}-${mo}-${dy}T${hh}:${mm}:${ss}${sign}${offH}:${offM}`
   }
   return zohoDate
 }
@@ -115,9 +121,11 @@ export async function syncUser(userId: string): Promise<void> {
 
   // Process each Zoho event
   for (const [zohoId, event] of zohoEventMap) {
+    console.log(`[sync] event raw dateandtime:`, JSON.stringify(event.dateandtime))
     const start = toIso(event.dateandtime.start)
     const end = toIso(event.dateandtime.end)
     const timezone = event.dateandtime.timezone ?? 'UTC'
+    console.log(`[sync] event converted: start=${start} end=${end} tz=${timezone}`)
 
     const existingMappings = mappingsByZohoId.get(zohoId) ?? []
     const mappedCalendarIds = new Set(existingMappings.map(m => m.googleCalendarId))
