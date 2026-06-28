@@ -57,17 +57,29 @@ export const zohoRoutes: FastifyPluginAsync = async (app) => {
 
       const { accessToken, refreshToken, expiresAt } = await exchangeZohoCode(code)
 
+      // Zoho only sends refresh_token on first auth. If absent, reuse the stored one.
+      let encryptedRefresh: string
+      if (refreshToken) {
+        encryptedRefresh = encrypt(refreshToken, config.TOKEN_ENCRYPTION_KEY)
+      } else {
+        const { rows: existing } = await pool.query(
+          'SELECT refresh_token FROM zoho_connections WHERE user_id = $1',
+          [userId]
+        )
+        if (!existing[0]) {
+          return reply.status(400).send({
+            error: 'No refresh token available. Please revoke the app in Zoho (My Account → Security → Connected Apps) and reconnect.',
+          })
+        }
+        encryptedRefresh = existing[0].refresh_token
+      }
+
       await pool.query(
         `INSERT INTO zoho_connections (user_id, access_token, refresh_token, token_expires_at)
          VALUES ($1, $2, $3, $4)
          ON CONFLICT (user_id) DO UPDATE
          SET access_token = $2, refresh_token = $3, token_expires_at = $4`,
-        [
-          userId,
-          encrypt(accessToken, config.TOKEN_ENCRYPTION_KEY),
-          encrypt(refreshToken, config.TOKEN_ENCRYPTION_KEY),
-          expiresAt,
-        ]
+        [userId, encrypt(accessToken, config.TOKEN_ENCRYPTION_KEY), encryptedRefresh, expiresAt]
       )
 
       reply.clearCookie('pending_user_id', { path: '/' })
