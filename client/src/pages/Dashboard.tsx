@@ -61,33 +61,43 @@ export function Dashboard() {
     }
   }, [syncState, qc])
 
-  // Poll history to detect sync completion; fall back to timeout after 15s
+  // Poll history to detect sync completion.
+  // If new history entries appear → changes were made, complete.
+  // If no new entries after first poll → no changes, complete immediately.
   useEffect(() => {
     if (syncState !== 'syncing') return
 
-    const complete = () => {
+    const complete = (reason: string) => {
       clearInterval(pollInterval.current!)
-      clearTimeout(fallbackTimeout)
+      console.log(`[sync] ${reason}`)
       setSyncState('done')
     }
 
-    const fallbackTimeout = setTimeout(complete, 15000)
+    let firstPoll = true
 
-    pollInterval.current = setInterval(async () => {
-      try {
-        const { data } = await api.get('/history?page=1&limit=5')
-        if (data.items?.length > 0) {
-          const latestAt = new Date(data.items[0].synced_at).getTime()
-          if (syncStartedAt.current && latestAt >= syncStartedAt.current) {
-            complete()
+    // Wait 2s before first poll to give the job time to run
+    const initialDelay = setTimeout(() => {
+      pollInterval.current = setInterval(async () => {
+        try {
+          const { data } = await api.get('/history?page=1&limit=5')
+          const hasNewEntry = data.items?.length > 0 &&
+            syncStartedAt.current &&
+            new Date(data.items[0].synced_at).getTime() >= syncStartedAt.current
+
+          if (hasNewEntry) {
+            complete('changes detected')
+          } else if (firstPoll) {
+            firstPoll = false
+            // No new entries on first check → sync ran with no changes
+            complete('no changes detected')
           }
-        }
-      } catch { /* ignore poll errors */ }
-    }, 1500)
+        } catch { /* ignore poll errors */ }
+      }, 1500)
+    }, 2000)
 
     return () => {
+      clearTimeout(initialDelay)
       clearInterval(pollInterval.current!)
-      clearTimeout(fallbackTimeout)
     }
   }, [syncState])
 

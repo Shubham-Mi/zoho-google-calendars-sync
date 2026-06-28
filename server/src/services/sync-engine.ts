@@ -205,4 +205,6 @@ export async function syncUser(userId: string): Promise<void> {
       }
     }
   }
+
+  console.log(`[sync] completed for user ${userId}`)
 }
