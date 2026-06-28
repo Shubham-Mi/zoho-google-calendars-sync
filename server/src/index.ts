@@ -21,7 +21,12 @@ export async function buildApp() {
   const app = Fastify({ logger: config.NODE_ENV !== 'test' })
 
   await app.register(fastifyJwt, { secret: config.JWT_SECRET })
-  await app.register(fastifyCors, { origin: true, credentials: true })
+  await app.register(fastifyCors, {
+    origin: process.env.NODE_ENV === 'production'
+      ? 'https://calendar-sync.shubhammttl.com'
+      : true,
+    credentials: true,
+  })
   await app.register(fastifyCookie)
 
   app.decorate('authenticate', async function (this: any, request: any, reply: any) {

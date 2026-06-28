@@ -13,8 +13,8 @@ export const zohoRoutes: FastifyPluginAsync = async (app) => {
     const { userId } = request.user as { userId: string }
     const state = randomBytes(16).toString('hex')
 
-    reply.setCookie('pending_user_id', userId, { httpOnly: true, path: '/', maxAge: 600 })
-    reply.setCookie('zoho_oauth_state', state, { httpOnly: true, path: '/', maxAge: 600 })
+    reply.setCookie('zoho_oauth_state', state, { httpOnly: true, path: '/', maxAge: 600, secure: true, sameSite: 'lax' })
+    reply.setCookie('pending_user_id', userId, { httpOnly: true, path: '/', maxAge: 600, secure: true, sameSite: 'lax' })
 
     const params = new URLSearchParams({
       response_type: 'code',
@@ -37,7 +37,7 @@ export const zohoRoutes: FastifyPluginAsync = async (app) => {
       if (!cookieState || cookieState !== state) {
         return reply.status(400).send({ error: 'Invalid state' })
       }
-      reply.clearCookie('zoho_oauth_state')
+      reply.clearCookie('zoho_oauth_state', { path: '/' })
 
       // We need the user from a short-lived cookie set before /connect
       const userCookie = request.cookies.pending_user_id
@@ -59,7 +59,7 @@ export const zohoRoutes: FastifyPluginAsync = async (app) => {
         ]
       )
 
-      reply.clearCookie('pending_user_id')
+      reply.clearCookie('pending_user_id', { path: '/' })
       return reply.redirect('/dashboard')
     }
   )

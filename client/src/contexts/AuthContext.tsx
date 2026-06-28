@@ -16,9 +16,13 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
-function parseJwt(token: string): AuthUser {
-  const payload = JSON.parse(atob(token.split('.')[1]))
-  return { userId: payload.userId }
+function parseJwt(token: string): AuthUser | null {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    return { userId: payload.userId }
+  } catch {
+    return null
+  }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -30,9 +34,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true)
     try {
       const { data } = await api.post<{ token: string }>('/auth/login', { email, password })
+      const parsed = parseJwt(data.token)
+      if (!parsed) {
+        localStorage.removeItem('token')
+        return
+      }
       localStorage.setItem('token', data.token)
       setToken(data.token)
-      setUser(parseJwt(data.token))
+      setUser(parsed)
     } finally {
       setIsLoading(false)
     }
@@ -42,9 +51,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true)
     try {
       const { data } = await api.post<{ token: string }>('/auth/register', { email, password })
+      const parsed = parseJwt(data.token)
+      if (!parsed) {
+        localStorage.removeItem('token')
+        return
+      }
       localStorage.setItem('token', data.token)
       setToken(data.token)
-      setUser(parseJwt(data.token))
+      setUser(parsed)
     } finally {
       setIsLoading(false)
     }

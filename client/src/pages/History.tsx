@@ -77,8 +77,11 @@ export function History() {
                 </span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm truncate">
-                    {item.google_calendar_id ?? '—'}
+                    {item.zoho_event_title ?? item.google_calendar_id ?? '—'}
                   </p>
+                  {item.google_calendar_id && (
+                    <p className="text-xs text-muted-foreground truncate">{item.google_calendar_id}</p>
+                  )}
                   {item.detail && (
                     <p className="text-xs text-destructive truncate">{item.detail}</p>
                   )}

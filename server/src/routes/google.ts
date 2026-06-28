@@ -15,8 +15,8 @@ export const googleRoutes: FastifyPluginAsync = async (app) => {
   app.get('/connect', { preHandler: [app.authenticate] }, async (request, reply) => {
     const { userId } = request.user as { userId: string }
     const state = randomBytes(16).toString('hex')
-    reply.setCookie('google_oauth_state', state, { httpOnly: true, path: '/', maxAge: 600 })
-    reply.setCookie('pending_user_id', userId, { httpOnly: true, path: '/', maxAge: 600 })
+    reply.setCookie('google_oauth_state', state, { httpOnly: true, path: '/', maxAge: 600, secure: true, sameSite: 'lax' })
+    reply.setCookie('pending_user_id', userId, { httpOnly: true, path: '/', maxAge: 600, secure: true, sameSite: 'lax' })
 
     const params = new URLSearchParams({
       response_type: 'code',
