@@ -61,9 +61,17 @@ export function Dashboard() {
     }
   }, [syncState, qc])
 
-  // Poll history to detect sync completion
+  // Poll history to detect sync completion; fall back to timeout after 15s
   useEffect(() => {
     if (syncState !== 'syncing') return
+
+    const complete = () => {
+      clearInterval(pollInterval.current!)
+      clearTimeout(fallbackTimeout)
+      setSyncState('done')
+    }
+
+    const fallbackTimeout = setTimeout(complete, 15000)
 
     pollInterval.current = setInterval(async () => {
       try {
@@ -71,14 +79,16 @@ export function Dashboard() {
         if (data.items?.length > 0) {
           const latestAt = new Date(data.items[0].synced_at).getTime()
           if (syncStartedAt.current && latestAt >= syncStartedAt.current) {
-            clearInterval(pollInterval.current!)
-            setSyncState('done')
+            complete()
           }
         }
       } catch { /* ignore poll errors */ }
     }, 1500)
 
-    return () => clearInterval(pollInterval.current!)
+    return () => {
+      clearInterval(pollInterval.current!)
+      clearTimeout(fallbackTimeout)
+    }
   }, [syncState])
 
   const { data: zohoStatus } = useQuery({
