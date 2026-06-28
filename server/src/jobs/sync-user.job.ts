@@ -11,6 +11,9 @@ export async function createBoss(connectionString: string): Promise<PgBoss> {
 }
 
 export async function startScheduler(boss: PgBoss): Promise<void> {
+  await boss.createQueue(JOB_NAME)
+  await boss.createQueue('enqueue-all-users')
+
   await boss.work<{ userId: string }>(JOB_NAME, { localConcurrency: 5 }, async (jobs) => {
     for (const job of jobs) {
       await syncUser(job.data.userId)
