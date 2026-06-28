@@ -7,14 +7,25 @@ import { exchangeZohoCode } from '../services/zoho.service.js'
 
 const ZOHO_AUTH_URL = 'https://accounts.zoho.in/oauth/v2/auth'
 
+const isProduction = process.env.NODE_ENV === 'production'
+
 export const zohoRoutes: FastifyPluginAsync = async (app) => {
   // Redirect user to Zoho OAuth consent screen
-  app.get('/connect', { preHandler: [app.authenticate] }, async (request, reply) => {
-    const { userId } = request.user as { userId: string }
-    const state = randomBytes(16).toString('hex')
+  app.get<{ Querystring: { token?: string } }>('/connect', async (request, reply) => {
+    const token = request.query.token
+    if (!token) return reply.status(401).send({ error: 'Unauthorized' })
+    let userId: string
+    try {
+      const payload = app.jwt.verify(token) as { userId: string }
+      userId = payload.userId
+    } catch {
+      return reply.status(401).send({ error: 'Unauthorized' })
+    }
 
-    reply.setCookie('zoho_oauth_state', state, { httpOnly: true, path: '/', maxAge: 600, secure: true, sameSite: 'lax' })
-    reply.setCookie('pending_user_id', userId, { httpOnly: true, path: '/', maxAge: 600, secure: true, sameSite: 'lax' })
+    const state = randomBytes(16).toString('hex')
+    const cookieOpts = { httpOnly: true, path: '/', maxAge: 600, secure: isProduction, sameSite: 'lax' as const }
+    reply.setCookie('zoho_oauth_state', state, cookieOpts)
+    reply.setCookie('pending_user_id', userId, cookieOpts)
 
     const params = new URLSearchParams({
       response_type: 'code',

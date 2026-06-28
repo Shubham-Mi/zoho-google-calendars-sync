@@ -89,8 +89,11 @@ export function Dashboard() {
                 Disconnect
               </Button>
             ) : (
-              <Button size="sm" asChild>
-                <a href="/api/zoho/connect">Connect Zoho</a>
+              <Button size="sm" onClick={() => {
+                const token = localStorage.getItem('token')
+                window.location.href = `/api/zoho/connect?token=${encodeURIComponent(token ?? '')}`
+              }}>
+                Connect Zoho
               </Button>
             )}
           </div>
@@ -112,8 +115,11 @@ export function Dashboard() {
                 Disconnect
               </Button>
             ) : (
-              <Button size="sm" asChild>
-                <a href="/api/google/connect">Connect Google</a>
+              <Button size="sm" onClick={() => {
+                const token = localStorage.getItem('token')
+                window.location.href = `/api/google/connect?token=${encodeURIComponent(token ?? '')}`
+              }}>
+                Connect Google
               </Button>
             )}
           </div>
