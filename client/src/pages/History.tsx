@@ -59,7 +59,6 @@ export function History() {
             disabled={isFetching}
           >
             <RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} />
-            Refresh
           </Button>
           <Select value={actionFilter} onValueChange={(v) => { setActionFilter(v); setPage(1) }}>
           <SelectTrigger className="w-36">
