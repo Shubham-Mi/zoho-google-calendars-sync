@@ -2,10 +2,8 @@ import { readFileSync, readdirSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import pg from 'pg'
-import dotenv from 'dotenv'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-dotenv.config({ path: join(__dirname, '../../../.env') })
 
 async function migrate() {
   const client = new pg.Client({ connectionString: process.env.DATABASE_URL })
