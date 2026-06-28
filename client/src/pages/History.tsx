@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { RefreshCw } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { api } from '../lib/api'
 import { Card, CardContent } from '../components/ui/card'
@@ -30,11 +31,12 @@ const ACTION_COLORS: Record<string, string> = {
 }
 
 export function History() {
+  const qc = useQueryClient()
   const [page, setPage] = useState(1)
   const [actionFilter, setActionFilter] = useState('all')
   const LIMIT = 50
 
-  const { data, isLoading } = useQuery<HistoryResponse>({
+  const { data, isLoading, isFetching } = useQuery<HistoryResponse>({
     queryKey: ['history', page, actionFilter],
     queryFn: () => {
       const params = new URLSearchParams({ page: String(page), limit: String(LIMIT) })
@@ -49,7 +51,17 @@ export function History() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Sync History</h1>
-        <Select value={actionFilter} onValueChange={(v) => { setActionFilter(v); setPage(1) }}>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => qc.invalidateQueries({ queryKey: ['history'] })}
+            disabled={isFetching}
+          >
+            <RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} />
+            Refresh
+          </Button>
+          <Select value={actionFilter} onValueChange={(v) => { setActionFilter(v); setPage(1) }}>
           <SelectTrigger className="w-36">
             <SelectValue />
           </SelectTrigger>
@@ -61,6 +73,7 @@ export function History() {
             <SelectItem value="error">Errors</SelectItem>
           </SelectContent>
         </Select>
+        </div>
       </div>
 
       <Card>
