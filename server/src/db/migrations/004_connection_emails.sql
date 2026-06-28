@@ -1,0 +1,2 @@
+ALTER TABLE zoho_connections ADD COLUMN IF NOT EXISTS email TEXT;
+ALTER TABLE google_connections ADD COLUMN IF NOT EXISTS email TEXT;

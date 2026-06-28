@@ -192,6 +192,9 @@ export function Dashboard() {
                 {zohoStatus?.connected ? 'Connected' : 'Not connected'}
               </Badge>
             </div>
+            {zohoStatus?.email && (
+              <p className="text-xs text-muted-foreground">{zohoStatus.email}</p>
+            )}
             {zohoStatus?.connected ? (
               <Button
                 variant="outline"
@@ -218,6 +221,9 @@ export function Dashboard() {
                 {googleStatus?.connected ? 'Connected' : 'Not connected'}
               </Badge>
             </div>
+            {googleStatus?.email && (
+              <p className="text-xs text-muted-foreground">{googleStatus.email}</p>
+            )}
             {googleStatus?.connected ? (
               <Button
                 variant="outline"

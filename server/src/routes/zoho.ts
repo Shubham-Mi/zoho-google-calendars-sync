@@ -3,7 +3,7 @@ import { randomBytes } from 'node:crypto'
 import { pool } from '../db/client.js'
 import { config } from '../config.js'
 import { encrypt } from '../crypto.js'
-import { exchangeZohoCode } from '../services/zoho.service.js'
+import { exchangeZohoCode, fetchZohoUserEmail } from '../services/zoho.service.js'
 
 const ZOHO_AUTH_URL = 'https://accounts.zoho.in/oauth/v2/auth'
 
@@ -74,12 +74,14 @@ export const zohoRoutes: FastifyPluginAsync = async (app) => {
         encryptedRefresh = existing[0].refresh_token
       }
 
+      const email = await fetchZohoUserEmail(accessToken)
+
       await pool.query(
-        `INSERT INTO zoho_connections (user_id, access_token, refresh_token, token_expires_at)
-         VALUES ($1, $2, $3, $4)
+        `INSERT INTO zoho_connections (user_id, access_token, refresh_token, token_expires_at, email)
+         VALUES ($1, $2, $3, $4, $5)
          ON CONFLICT (user_id) DO UPDATE
-         SET access_token = $2, refresh_token = $3, token_expires_at = $4`,
-        [userId, encrypt(accessToken, config.TOKEN_ENCRYPTION_KEY), encryptedRefresh, expiresAt]
+         SET access_token = $2, refresh_token = $3, token_expires_at = $4, email = $5`,
+        [userId, encrypt(accessToken, config.TOKEN_ENCRYPTION_KEY), encryptedRefresh, expiresAt, email]
       )
 
       reply.clearCookie('pending_user_id', { path: '/' })
@@ -90,10 +92,10 @@ export const zohoRoutes: FastifyPluginAsync = async (app) => {
   app.get('/status', { preHandler: [app.authenticate] }, async (request) => {
     const { userId } = request.user as { userId: string }
     const { rows } = await pool.query(
-      'SELECT zoho_account_id FROM zoho_connections WHERE user_id = $1',
+      'SELECT zoho_account_id, email FROM zoho_connections WHERE user_id = $1',
       [userId]
     )
-    return { connected: rows.length > 0, accountId: rows[0]?.zoho_account_id ?? null }
+    return { connected: rows.length > 0, accountId: rows[0]?.zoho_account_id ?? null, email: rows[0]?.email ?? null }
   })
 
   app.delete('/disconnect', { preHandler: [app.authenticate] }, async (request) => {

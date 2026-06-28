@@ -3,7 +3,7 @@ import { randomBytes } from 'node:crypto'
 import { pool } from '../db/client.js'
 import { config } from '../config.js'
 import { encrypt } from '../crypto.js'
-import { exchangeGoogleCode, fetchGoogleCalendars } from '../services/google.service.js'
+import { exchangeGoogleCode, fetchGoogleCalendars, fetchGoogleUserEmail } from '../services/google.service.js'
 
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 const SCOPES = [
@@ -58,14 +58,15 @@ export const googleRoutes: FastifyPluginAsync = async (app) => {
       reply.clearCookie('pending_user_id', { path: '/' })
 
       const { accessToken, refreshToken, expiresAt } = await exchangeGoogleCode(code)
+      const email = await fetchGoogleUserEmail(accessToken)
 
       await pool.query(
-        `INSERT INTO google_connections (user_id, access_token, refresh_token, token_expires_at)
-         VALUES ($1, $2, $3, $4)
+        `INSERT INTO google_connections (user_id, access_token, refresh_token, token_expires_at, email)
+         VALUES ($1, $2, $3, $4, $5)
          ON CONFLICT (user_id) DO UPDATE
-         SET access_token = $2, refresh_token = $3, token_expires_at = $4`,
+         SET access_token = $2, refresh_token = $3, token_expires_at = $4, email = $5`,
         [userId, encrypt(accessToken, config.TOKEN_ENCRYPTION_KEY),
-         encrypt(refreshToken, config.TOKEN_ENCRYPTION_KEY), expiresAt]
+         encrypt(refreshToken, config.TOKEN_ENCRYPTION_KEY), expiresAt, email]
       )
 
       // Fetch and store all of the user's Google Calendars (all enabled by default)
@@ -86,10 +87,10 @@ export const googleRoutes: FastifyPluginAsync = async (app) => {
   app.get('/status', { preHandler: [app.authenticate] }, async (request) => {
     const { userId } = request.user as { userId: string }
     const { rows } = await pool.query(
-      'SELECT id FROM google_connections WHERE user_id = $1',
+      'SELECT email FROM google_connections WHERE user_id = $1',
       [userId]
     )
-    return { connected: rows.length > 0 }
+    return { connected: rows.length > 0, email: rows[0]?.email ?? null }
   })
 
   app.delete('/disconnect', { preHandler: [app.authenticate] }, async (request) => {

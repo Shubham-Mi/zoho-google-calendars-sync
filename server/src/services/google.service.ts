@@ -8,6 +8,18 @@ export interface GoogleCalendar {
 
 const GOOGLE_API = 'https://www.googleapis.com/calendar/v3'
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
+const GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo'
+
+export async function fetchGoogleUserEmail(accessToken: string): Promise<string | null> {
+  try {
+    const { data } = await axios.get(GOOGLE_USERINFO_URL, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+    return data.email ?? null
+  } catch {
+    return null
+  }
+}
 
 function authHeader(accessToken: string) {
   return { Authorization: `Bearer ${accessToken}` }
