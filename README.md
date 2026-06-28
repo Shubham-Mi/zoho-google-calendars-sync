@@ -16,7 +16,6 @@ A self-hosted, multi-user web app that reads events from Zoho Calendar (India da
 - [Environment Variables](#environment-variables)
 - [Database](#database)
 - [Running Tests](#running-tests)
-- [Production Deployment](#production-deployment)
 - [Architecture Notes](#architecture-notes)
 - [License](#license)
 
@@ -203,44 +202,6 @@ npm run test:watch -w server
 cd server && npx vitest run src/__tests__/sync-engine.test.ts
 cd client && npx vitest run src/__tests__/Login.test.tsx
 ```
-
----
-
-## Production Deployment
-
-The server serves both the API (`/api/*`) and the pre-built React SPA from `client/dist` as static files. nginx terminates TLS and proxies everything to `localhost:3000`.
-
-### First-time VPS setup
-
-```bash
-# 1. Point DNS A record for calendar-sync.shubhammttl.com to your VPS IP
-
-# 2. Install nginx config and obtain SSL certificate
-sudo cp nginx/calendar-sync.conf /etc/nginx/sites-available/calendar-sync
-sudo ln -s /etc/nginx/sites-available/calendar-sync /etc/nginx/sites-enabled/
-sudo certbot --nginx -d calendar-sync.shubhammttl.com
-sudo nginx -t && sudo systemctl reload nginx
-
-# 3. Configure environment
-cp .env.example .env
-# Fill in all values; set NODE_ENV=production and CLIENT_URL=https://calendar-sync.shubhammttl.com
-
-# 4. Run migrations and build
-npm run db:migrate
-npm run build:prod
-
-# 5. Start with PM2 (process name: zoho-gcal)
-pm2 start ecosystem.config.cjs --env production
-pm2 save && pm2 startup
-```
-
-### Subsequent deploys
-
-```bash
-git pull && npm run db:migrate && npm run build:prod && pm2 restart zoho-gcal
-```
-
-PM2 is configured with `autorestart: true`, a single instance, and a `512M` memory restart threshold (`ecosystem.config.cjs`).
 
 ---
 
