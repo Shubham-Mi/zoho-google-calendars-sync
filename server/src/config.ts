@@ -16,4 +16,5 @@ export const config = {
   GOOGLE_REDIRECT_URI: requireEnv('GOOGLE_REDIRECT_URI'),
   PORT: process.env.PORT ?? '3000',
   NODE_ENV: process.env.NODE_ENV ?? 'development',
+  CLIENT_URL: process.env.CLIENT_URL ?? 'http://localhost:5173',
 }

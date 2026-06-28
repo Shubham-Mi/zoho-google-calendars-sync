@@ -83,7 +83,7 @@ export const zohoRoutes: FastifyPluginAsync = async (app) => {
       )
 
       reply.clearCookie('pending_user_id', { path: '/' })
-      return reply.redirect('/dashboard')
+      return reply.redirect(`${config.CLIENT_URL}/dashboard`)
     }
   )
 

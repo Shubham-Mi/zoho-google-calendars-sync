@@ -79,7 +79,7 @@ export const googleRoutes: FastifyPluginAsync = async (app) => {
         )
       }
 
-      return reply.redirect('/dashboard')
+      return reply.redirect(`${config.CLIENT_URL}/dashboard`)
     }
   )
 
