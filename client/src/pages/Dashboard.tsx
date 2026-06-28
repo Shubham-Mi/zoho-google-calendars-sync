@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
@@ -17,6 +18,12 @@ interface CalendarItem {
 export function Dashboard() {
   const qc = useQueryClient()
   const navigate = useNavigate()
+  const [syncQueued, setSyncQueued] = useState(false)
+  useEffect(() => {
+    if (!syncQueued) return
+    const t = setTimeout(() => setSyncQueued(false), 5000)
+    return () => clearTimeout(t)
+  }, [syncQueued])
 
   const { data: zohoStatus } = useQuery({
     queryKey: ['zoho-status'],
@@ -47,6 +54,7 @@ export function Dashboard() {
 
   const triggerSync = useMutation({
     mutationFn: () => api.post('/sync/trigger'),
+    onSuccess: () => setSyncQueued(true),
   })
 
   const disconnectZoho = useMutation({
@@ -179,7 +187,7 @@ export function Dashboard() {
           <Button variant="outline" onClick={() => navigate('/history')}>
             View History &rarr;
           </Button>
-          {triggerSync.isSuccess && (
+          {syncQueued && (
             <span className="text-sm text-muted-foreground">Sync job queued.</span>
           )}
         </CardContent>
