@@ -18,8 +18,8 @@ export interface ZohoEvent {
   }
 }
 
-const ZOHO_API = 'https://calendar.zoho.com/api/v1'
-const ZOHO_TOKEN_URL = 'https://accounts.zoho.com/oauth/v2/token'
+const ZOHO_API = 'https://calendar.zoho.in/api/v1'
+const ZOHO_TOKEN_URL = 'https://accounts.zoho.in/oauth/v2/token'
 
 export async function fetchZohoCalendars(accessToken: string): Promise<ZohoCalendar[]> {
   const { data } = await axios.get(`${ZOHO_API}/calendars`, {

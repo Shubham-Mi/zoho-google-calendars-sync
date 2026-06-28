@@ -5,7 +5,7 @@ import { config } from '../config.js'
 import { encrypt } from '../crypto.js'
 import { exchangeZohoCode } from '../services/zoho.service.js'
 
-const ZOHO_AUTH_URL = 'https://accounts.zoho.com/oauth/v2/auth'
+const ZOHO_AUTH_URL = 'https://accounts.zoho.in/oauth/v2/auth'
 
 export const zohoRoutes: FastifyPluginAsync = async (app) => {
   // Redirect user to Zoho OAuth consent screen
