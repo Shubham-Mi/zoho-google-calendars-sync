@@ -31,7 +31,7 @@ export const zohoRoutes: FastifyPluginAsync = async (app) => {
       response_type: 'code',
       client_id: config.ZOHO_CLIENT_ID,
       redirect_uri: config.ZOHO_REDIRECT_URI,
-      scope: 'ZohoCalendar.event.READ',
+      scope: 'ZohoCalendar.calendar.READ,ZohoCalendar.event.READ',
       access_type: 'offline',
       state,
     })

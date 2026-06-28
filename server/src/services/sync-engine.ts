@@ -64,25 +64,35 @@ function toIso(zohoDate: string): string {
 }
 
 export async function syncUser(userId: string): Promise<void> {
+  console.log(`[sync] starting for user ${userId}`)
+
   const zohoToken = await getValidZohoToken(userId)
-  if (!zohoToken) return
+  if (!zohoToken) { console.log('[sync] no zoho token, skipping'); return }
 
   const googleToken = await getValidGoogleToken(userId)
-  if (!googleToken) return
+  if (!googleToken) { console.log('[sync] no google token, skipping'); return }
 
   const { rows: calRows } = await pool.query(
     'SELECT google_calendar_id FROM google_calendars WHERE user_id = $1 AND enabled = true',
     [userId]
   )
-  if (calRows.length === 0) return
+  if (calRows.length === 0) { console.log('[sync] no enabled calendars, skipping'); return }
 
   const enabledCalendarIds = calRows.map((r: any) => r.google_calendar_id)
+  console.log(`[sync] enabled calendars: ${enabledCalendarIds.length}`)
 
   const now = new Date()
   const from = new Date(now.getTime() - 24 * 3600 * 1000)
   const to = new Date(now.getTime() + 365 * 24 * 3600 * 1000)
 
-  const zohoEvents = await fetchZohoEvents(zohoToken, from, to)
+  let zohoEvents
+  try {
+    zohoEvents = await fetchZohoEvents(zohoToken, from, to)
+    console.log(`[sync] fetched ${zohoEvents.length} Zoho events`)
+  } catch (err: any) {
+    console.error('[sync] fetchZohoEvents failed:', err.message, err.response?.data)
+    return
+  }
   const zohoEventMap = new Map(zohoEvents.map(e => [e.uid, e]))
 
   const { rows: mappingRows } = await pool.query(
@@ -128,6 +138,7 @@ export async function syncUser(userId: string): Promise<void> {
             [userId, zohoId, event.title, calId]
           )
         } catch (err: any) {
+          console.error(`[sync] create error for ${zohoId} on ${calId}:`, err.message)
           await pool.query(
             `INSERT INTO sync_history (user_id, action, zoho_event_id, zoho_event_title, google_calendar_id, detail, synced_at)
              VALUES ($1, 'error', $2, $3, $4, $5, NOW())`,
