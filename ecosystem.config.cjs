@@ -3,7 +3,7 @@ module.exports = {
     {
       name: 'zoho-gcal',
       script: './server/dist/index.js',
-      node_args: '--env-file=.env',
+      node_args: `--env-file=${__dirname}/.env`,
       env_production: {
         NODE_ENV: 'production',
       },
